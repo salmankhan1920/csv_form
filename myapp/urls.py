@@ -5,7 +5,16 @@ urlpatterns = [
     path('order/', views.order_form, name='order_form'),
     path('display-csv/', views.display_csv, name='display_csv'),
     path('download-csv/', views.download_csv, name='download_csv'),
+     path('signup/', views.signup_view, name='signup'),
+    path('login/', views.login_view, name='login'),
+     path('logout/', views.logout_view, name='logout'),
+    path('logs/', views.logs_view, name='logs'),
+    path('links/', views.links_view, name='links'),
 ]
+
+    
+
+
 
 
 

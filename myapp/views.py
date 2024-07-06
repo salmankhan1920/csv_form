@@ -8,6 +8,10 @@ from django.contrib import messages
 import os
 from django.contrib.auth.decorators import login_required
 from .models import OrderLog, Order
+from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+
+
 
 
 
@@ -279,3 +283,97 @@ def download_csv(request):
 
 
 
+# def signup_view(request):
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)
+#             return redirect('order_form')
+#     else:
+#         form = UserCreationForm()
+#     return render(request, 'signup.html', {'form': form})
+
+def signup_view(request):
+    # Check if the user is already authenticated
+    if request.user.is_authenticated:
+        # If so, redirect to the order form (or any other appropriate page)
+        return redirect('order_form')
+    
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Account created successfully. You are now logged in.')
+            return redirect('order_form')
+        else:
+            messages.error(request, 'There was an error with your signup. Please try again.')
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'signup.html', {'form': form})
+
+
+
+# def login_view(request):
+#     if request.method == 'POST':
+#         form = AuthenticationForm(data=request.POST)
+#         if form.is_valid():
+#             user = form.get_user()
+#             login(request, user)
+#             return redirect('order_form')
+#     else:
+#         form = AuthenticationForm()
+#     return render(request, 'login.html', {'form': form})
+
+
+
+# def login_view(request):
+#     if request.method == 'POST':
+#         form = AuthenticationForm(data=request.POST)
+#         if form.is_valid():
+#             user = form.get_user()
+#             login(request, user)
+#             return redirect('order_form')
+#         else:
+#             messages.error(request, 'Invalid username or password')
+#     else:
+#         form = AuthenticationForm()
+#     return render(request, 'login.html', {'form': form})
+
+
+
+def login_view(request):
+    # Check if the user is already authenticated
+    if request.user.is_authenticated:
+        # If so, redirect to the order form (or any other appropriate page)
+        return redirect('order_form')
+    
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            # You can add a success message here if you want
+            messages.success(request, 'You have successfully logged in.')
+            return redirect('order_form')
+        else:
+            messages.error(request, 'Invalid username or password')
+    else:
+        form = AuthenticationForm()
+    
+    return render(request, 'login.html', {'form': form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+def logs_view(request):
+    # Implement your logs view
+    pass
+
+def links_view(request):
+    # Implement your links view
+    pass
