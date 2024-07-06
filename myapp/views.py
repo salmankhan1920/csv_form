@@ -10,6 +10,14 @@ from django.contrib.auth.decorators import login_required
 from .models import OrderLog, Order
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
+
+
+
+def is_superuser(user):
+    return user.is_superuser
+
 
 
 
@@ -195,6 +203,52 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 #     return render(request, 'order_form.html', {'form': form, 'recent_orders': recent_orders})
 
 
+# @login_required
+# def order_form(request):
+#     if request.method == 'POST':
+#         form = OrderForm(request.POST, user=request.user)
+#         if form.is_valid():
+#             order = form.save(commit=False)
+#             now = timezone.localtime(timezone.now())
+#             order.timing = now.time()
+#             order.date = now.date()
+#             order.save()
+            
+#             # Save to CSV
+#             csv_file_path = 'orders.csv'
+#             file_exists = os.path.isfile(csv_file_path)
+            
+#             with open(csv_file_path, 'a', newline='') as csvfile:
+#                 writer = csv.writer(csvfile)
+#                 if not file_exists:
+#                     writer.writerow(['User', 'ID Name', 'Timing', 'Date', 'Order ID', 'Amount', 'Address Code', 'Refresh Link', 'Cancel Status'])
+                
+#                 # Format the time without microseconds
+#                 formatted_time = order.timing.strftime('%H:%M:%S')
+                
+#                 writer.writerow([
+#                     request.user.username,
+#                     order.id_name,
+#                     formatted_time,
+#                     order.date,
+#                     order.order_id,
+#                     order.amount,
+#                     order.address_code,
+#                     order.refresh_link,
+#                     order.cancel_status
+#                 ])
+            
+#             messages.success(request, 'Order submitted successfully!')
+#             return redirect('order_form')
+#     else:
+#         form = OrderForm(user=request.user)
+    
+#     # Get recent orders for the logged-in user
+#     recent_orders = Order.objects.filter(user=request.user).order_by('-date', '-timing')[:5]
+    
+#     return render(request, 'order_form.html', {'form': form, 'recent_orders': recent_orders})
+
+
 @login_required
 def order_form(request):
     if request.method == 'POST':
@@ -204,31 +258,14 @@ def order_form(request):
             now = timezone.localtime(timezone.now())
             order.timing = now.time()
             order.date = now.date()
+            order.user = request.user
             order.save()
             
-            # Save to CSV
-            csv_file_path = 'orders.csv'
-            file_exists = os.path.isfile(csv_file_path)
+            # Create log entry
+            OrderLog.objects.create(user=request.user, order=order, action="created")
             
-            with open(csv_file_path, 'a', newline='') as csvfile:
-                writer = csv.writer(csvfile)
-                if not file_exists:
-                    writer.writerow(['User', 'ID Name', 'Timing', 'Date', 'Order ID', 'Amount', 'Address Code', 'Refresh Link', 'Cancel Status'])
-                
-                # Format the time without microseconds
-                formatted_time = order.timing.strftime('%H:%M:%S')
-                
-                writer.writerow([
-                    request.user.username,
-                    order.id_name,
-                    formatted_time,
-                    order.date,
-                    order.order_id,
-                    order.amount,
-                    order.address_code,
-                    order.refresh_link,
-                    order.cancel_status
-                ])
+            # Save to CSV
+            save_to_csv(order, request.user)
             
             messages.success(request, 'Order submitted successfully!')
             return redirect('order_form')
@@ -236,15 +273,78 @@ def order_form(request):
         form = OrderForm(user=request.user)
     
     # Get recent orders for the logged-in user
-    recent_orders = Order.objects.filter(user=request.user).order_by('-date', '-timing')[:5]
+    recent_orders = Order.objects.filter(user=request.user).order_by('-date', '-timing')[:4]
     
-    return render(request, 'order_form.html', {'form': form, 'recent_orders': recent_orders})
+    context = {
+        'form': form,
+        'recent_orders': recent_orders
+    }
+    
+    return render(request, 'order_form.html', context)
+
+
+
+def save_to_csv(order, user):
+    csv_file_path = 'orders.csv'
+    file_exists = os.path.isfile(csv_file_path)
+    
+    with open(csv_file_path, 'a', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        if not file_exists:
+            writer.writerow(['User', 'ID Name', 'Timing', 'Date', 'Order ID', 'Amount', 'Address Code', 'Refresh Link', 'Cancel Status'])
+        
+        # Format the time without microseconds
+        formatted_time = order.timing.strftime('%H:%M:%S')
+        
+        writer.writerow([
+            user.username,
+            order.id_name,
+            formatted_time,
+            order.date,
+            order.order_id,
+            order.amount,
+            order.address_code,
+            order.refresh_link,
+            order.cancel_status
+        ])
+
+
+@login_required
+def user_logs(request):
+    # Get all logs for the current user
+    logs = OrderLog.objects.filter(user=request.user).order_by('-timestamp')
+    
+    # Get all orders for the current user
+    orders = Order.objects.filter(user=request.user).order_by('-date', '-timing')
+    
+    context = {
+        'logs': logs,
+        'orders': orders,
+    }
+
+    return render(request, 'user_logs.html', context)
 
 
 
 
 
 
+# def display_csv(request):
+#     csv_file_path = 'orders.csv'
+#     orders = []
+
+#     try:
+#         with open(csv_file_path, 'r') as csvfile:
+#             csv_reader = csv.DictReader(csvfile)
+#             for row in csv_reader:
+#                 orders.append(row)
+#     except FileNotFoundError:
+#         orders = []
+
+#     return render(request, 'display_csv.html', {'orders': orders})
+
+@user_passes_test(is_superuser)
+@staff_member_required
 def display_csv(request):
     csv_file_path = 'orders.csv'
     orders = []
@@ -258,6 +358,9 @@ def display_csv(request):
         orders = []
 
     return render(request, 'display_csv.html', {'orders': orders})
+
+
+
 
 
 
@@ -370,10 +473,11 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-def logs_view(request):
-    # Implement your logs view
-    pass
 
-def links_view(request):
-    # Implement your links view
-    pass
+
+@staff_member_required
+def all_user_logs(request):
+    logs = OrderLog.objects.all().order_by('-timestamp')
+    return render(request, 'all_user_logs.html', {'logs': logs})
+
+    

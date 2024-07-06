@@ -2,8 +2,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ... (keep the existing head content and styles) ... -->
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Form</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,36 +89,6 @@
             background-color: #FFD2D2;
             color: #D8000C;
         }
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 20px;
-            }
-            h2 {
-                font-size: 1.5em;
-            }
-            input, select {
-                font-size: 14px;
-            }
-            input[type="submit"] {
-                font-size: 16px;
-            }
-        }
-    </style>
-
-    
-    <style>
-        /* ... (keep the existing styles) ... */
-        input[type="submit"]:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-    </style>
-
-    <style>
-        /* ... (keep existing styles) ... */
         .user-info {
             text-align: right;
             margin-bottom: 20px;
@@ -135,50 +106,83 @@
         .recent-orders li {
             margin-bottom: 5px;
         }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            input, select {
+                font-size: 14px;
+            }
+            input[type="submit"] {
+                font-size: 16px;
+            }
+            .user-info {
+                text-align: center;
+                margin-bottom: 15px;
+            }
+            .recent-orders li {
+                font-size: 14px;
+            }
+        }
     </style>
-
     <style>
+        /* ... (keep existing styles) ... */
+
+        /* Menu styles */
         .menu-container {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-}
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .menu-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .show {
+            display: block;
+        }
 
-.menu-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-}
-
-.show {
-    display: block;
-}
-
+        @media (max-width: 600px) {
+            /* ... (keep existing mobile styles) ... */
+            .menu-container {
+                position: static;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .dropdown-content {
+                position: static;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -187,12 +191,17 @@
         <button class="menu-button" onclick="toggleMenu()">Menu</button>
         <div id="dropdown-menu" class="dropdown-content">
             <a href="{% url 'logout' %}">Logout</a>
-            <a href="{% url 'logs' %}">Logs</a>
-            <a href="{% url 'links' %}">Links</a>
+            <a href="{% url 'user_logs' %}">Logs</a>
+            {% if user.is_staff %}
+            <a href="{% url 'all_user_logs' %}">All User Logs</a>
+        {% endif %}
+        
+            {% if user.is_superuser %}
+            <a href="{% url 'display_csv' %}">View CSV</a>
+        {% endif %}
         </div>
     </div>
 
-    
 
     <div class="container">
         <div class="user-info">
@@ -240,89 +249,87 @@
     </div>
 
     <script>
-        // ... (keep existing JavaScript) ...
+        function padZero(num) {
+            return num < 10 ? '0' + num : num;
+        }
+
+        function updateAutoFields() {
+            const now = new Date();
+            document.getElementById('id_timing').value = padZero(now.getHours()) + ':' + padZero(now.getMinutes()) + ':' + padZero(now.getSeconds());
+            document.getElementById('id_date').value = now.getFullYear() + '-' + padZero(now.getMonth() + 1) + '-' + padZero(now.getDate());
+        }
+
+        updateAutoFields();
+        setInterval(updateAutoFields, 1000);
+
+        // Form validation and submission handling
+        const form = document.getElementById('orderForm');
+        const submitButton = document.getElementById('submitButton');
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                }
+            });
+            return isValid;
+        }
+
+        function updateSubmitButton() {
+            submitButton.disabled = !validateForm();
+        }
+
+        // Add event listeners to all form fields
+        form.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('input', updateSubmitButton);
+            field.addEventListener('change', updateSubmitButton);
+        });
+
+        // Initial button state
+        updateSubmitButton();
+
+        // Form submission handling
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                return;
+            }
+            submitButton.disabled = true;
+            submitButton.value = 'Submitting...';
+
+            // Optional: If you want to re-enable the button after a certain time
+            // in case the form submission fails or takes too long
+            setTimeout(function() {
+                submitButton.disabled = false;
+                submitButton.value = 'Submit';
+            }, 10000); // Re-enable after 10 seconds
+        });
     </script>
 
-
 <script>
-    function padZero(num) {
-        return num < 10 ? '0' + num : num;
+    // ... (keep existing JavaScript) ...
+
+    function toggleMenu() {
+        document.getElementById("dropdown-menu").classList.toggle("show");
     }
 
-    function updateAutoFields() {
-        const now = new Date();
-        document.getElementById('id_timing').value = padZero(now.getHours()) + ':' + padZero(now.getMinutes()) + ':' + padZero(now.getSeconds());
-        document.getElementById('id_date').value = now.getFullYear() + '-' + padZero(now.getMonth() + 1) + '-' + padZero(now.getDate());
-    }
-
-    updateAutoFields();
-    setInterval(updateAutoFields, 1000);
-
-    // Form validation and submission handling
-    const form = document.getElementById('orderForm');
-    const submitButton = document.getElementById('submitButton');
-
-    function validateForm() {
-        let isValid = true;
-        const requiredFields = form.querySelectorAll('[required]');
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                isValid = false;
-            }
-        });
-        return isValid;
-    }
-
-    function updateSubmitButton() {
-        submitButton.disabled = !validateForm();
-    }
-
-    // Add event listeners to all form fields
-    form.querySelectorAll('input, select').forEach(field => {
-        field.addEventListener('input', updateSubmitButton);
-        field.addEventListener('change', updateSubmitButton);
-    });
-
-    // Initial button state
-    updateSubmitButton();
-
-    // Form submission handling
-    form.addEventListener('submit', function(e) {
-        if (!validateForm()) {
-            e.preventDefault();
-            return;
-        }
-        submitButton.disabled = true;
-        submitButton.value = 'Submitting...';
-
-        // Optional: If you want to re-enable the button after a certain time
-        // in case the form submission fails or takes too long
-        setTimeout(function() {
-            submitButton.disabled = false;
-            submitButton.value = 'Submit';
-        }, 10000); // Re-enable after 10 seconds
-    });
-</script>
-
-
-<script>function toggleMenu() {
-    document.getElementById("dropdown-menu").classList.toggle("show");
-}
-
-// Close the dropdown menu if the user clicks outside of it
-window.onclick = function(event) {
-    if (!event.target.matches('.menu-button')) {
-        var dropdowns = document.getElementsByClassName("dropdown-content");
-        for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
+    // Close the dropdown menu if the user clicks outside of it
+    window.onclick = function(event) {
+        if (!event.target.matches('.menu-button')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
             }
         }
     }
-}
-
 </script>
+
+
 
 </body>
 </html>
