@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- ... (keep the existing head content) ... -->
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            color: #666;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: #D8000C;
+            background-color: #FFD2D2;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        input[readonly] {
+            background-color: #f0f0f0;
+            color: #666;
+            cursor: default;
+            border: 1px solid #ccc;
+        }
+        input[readonly]:focus {
+            outline: none;
+            box-shadow: none;
+        }
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .messages .success {
+            background-color: #DFF2BF;
+            color: #4F8A10;
+        }
+        .messages .error {
+            background-color: #FFD2D2;
+            color: #D8000C;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h2 {
+                font-size: 1.5em;
+            }
+            input, select {
+                font-size: 14px;
+            }
+            input[type="submit"] {
+                font-size: 16px;
+            }
+        }
+    </style>
+
+    
+    <style>
+        /* ... (keep the existing styles) ... */
+        input[type="submit"]:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+
+
+    <style>
+        /* ... (keep the existing styles) ... */
+        .error-message {
+            color: #D8000C;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Order Form</h2>
+        
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form id="orderForm" method="post" autocomplete="on">
+            {% csrf_token %}
+            {% for field in form %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                {% endif %}
+                {% if field.name == 'amount' %}
+                    <div id="amountError" class="error-message">Please enter a valid number (3 or 4 digits).</div>
+                {% endif %}
+            {% endfor %}
+            <input type="submit" value="Submit" id="submitButton">
+        </form>
+    </div>
+
+    <script>
+        function padZero(num) {
+            return num < 10 ? '0' + num : num;
+        }
+
+        function updateAutoFields() {
+            const now = new Date();
+            document.getElementById('id_timing').value = padZero(now.getHours()) + ':' + padZero(now.getMinutes()) + ':' + padZero(now.getSeconds());
+            document.getElementById('id_date').value = now.getFullYear() + '-' + padZero(now.getMonth() + 1) + '-' + padZero(now.getDate());
+        }
+
+        updateAutoFields();
+        setInterval(updateAutoFields, 1000);
+
+        // Form validation and submission handling
+        const form = document.getElementById('orderForm');
+        const submitButton = document.getElementById('submitButton');
+        const amountField = document.getElementById('id_amount');
+        const amountError = document.getElementById('amountError');
+
+        function validateAmount() {
+            const value = amountField.value.trim();
+            const isValid = /^\d{3,4}$/.test(value);
+            amountError.style.display = isValid ? 'none' : 'block';
+            return isValid;
+        }
+
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                }
+            });
+            return isValid && validateAmount();
+        }
+
+        function updateSubmitButton() {
+            submitButton.disabled = !validateForm();
+        }
+
+        // Add event listeners to all form fields
+        form.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('input', updateSubmitButton);
+            field.addEventListener('change', updateSubmitButton);
+        });
+
+        // Special handler for amount field
+        amountField.addEventListener('input', function() {
+            validateAmount();
+            updateSubmitButton();
+        });
+
+        // Initial button state
+        updateSubmitButton();
+
+        // Form submission handling
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                return;
+            }
+            submitButton.disabled = true;
+            submitButton.value = 'Submitting...';
+
+            // Optional: If you want to re-enable the button after a certain time
+            // in case the form submission fails or takes too long
+            setTimeout(function() {
+                submitButton.disabled = false;
+                submitButton.value = 'Submit';
+            }, 10000); // Re-enable after 10 seconds
+        });
+    </script>
+</body>
+</html>
