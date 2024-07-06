@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- ... (keep the existing head content) ... -->
+    <!-- ... (keep the existing head content and styles) ... -->
 
     <style>
         body {
@@ -116,19 +116,33 @@
         }
     </style>
 
-
     <style>
-        /* ... (keep the existing styles) ... */
-        .error-message {
-            color: #D8000C;
-            font-size: 0.9em;
-            margin-top: 5px;
-            display: none;
+        /* ... (keep existing styles) ... */
+        .user-info {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .recent-orders {
+            margin-top: 30px;
+        }
+        .recent-orders h3 {
+            margin-bottom: 10px;
+        }
+        .recent-orders ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .recent-orders li {
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="user-info">
+            Logged in as: {{ request.user.username }}
+        </div>
+        
         <h2>Order Form</h2>
         
         {% if messages %}
@@ -141,6 +155,7 @@
 
         <form id="orderForm" method="post" autocomplete="on">
             {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ request.user.id }}">
             {% for field in form %}
                 <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
                 {{ field }}
@@ -153,81 +168,85 @@
             {% endfor %}
             <input type="submit" value="Submit" id="submitButton">
         </form>
+
+        <div class="recent-orders">
+            <h3>Your Recent Orders</h3>
+            {% if recent_orders %}
+                <ul>
+                {% for order in recent_orders %}
+                    <li>Order ID: {{ order.order_id }} - Date: {{ order.date }} - Amount: {{ order.amount }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No recent orders found.</p>
+            {% endif %}
+        </div>
     </div>
 
     <script>
-        function padZero(num) {
-            return num < 10 ? '0' + num : num;
-        }
-
-        function updateAutoFields() {
-            const now = new Date();
-            document.getElementById('id_timing').value = padZero(now.getHours()) + ':' + padZero(now.getMinutes()) + ':' + padZero(now.getSeconds());
-            document.getElementById('id_date').value = now.getFullYear() + '-' + padZero(now.getMonth() + 1) + '-' + padZero(now.getDate());
-        }
-
-        updateAutoFields();
-        setInterval(updateAutoFields, 1000);
-
-        // Form validation and submission handling
-        const form = document.getElementById('orderForm');
-        const submitButton = document.getElementById('submitButton');
-        const amountField = document.getElementById('id_amount');
-        const amountError = document.getElementById('amountError');
-
-        function validateAmount() {
-            const value = amountField.value.trim();
-            const isValid = /^\d{3,4}$/.test(value);
-            amountError.style.display = isValid ? 'none' : 'block';
-            return isValid;
-        }
-
-        function validateForm() {
-            let isValid = true;
-            const requiredFields = form.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                }
-            });
-            return isValid && validateAmount();
-        }
-
-        function updateSubmitButton() {
-            submitButton.disabled = !validateForm();
-        }
-
-        // Add event listeners to all form fields
-        form.querySelectorAll('input, select').forEach(field => {
-            field.addEventListener('input', updateSubmitButton);
-            field.addEventListener('change', updateSubmitButton);
-        });
-
-        // Special handler for amount field
-        amountField.addEventListener('input', function() {
-            validateAmount();
-            updateSubmitButton();
-        });
-
-        // Initial button state
-        updateSubmitButton();
-
-        // Form submission handling
-        form.addEventListener('submit', function(e) {
-            if (!validateForm()) {
-                e.preventDefault();
-                return;
-            }
-            submitButton.disabled = true;
-            submitButton.value = 'Submitting...';
-
-            // Optional: If you want to re-enable the button after a certain time
-            // in case the form submission fails or takes too long
-            setTimeout(function() {
-                submitButton.disabled = false;
-                submitButton.value = 'Submit';
-            }, 10000); // Re-enable after 10 seconds
-        });
+        // ... (keep existing JavaScript) ...
     </script>
+
+
+<script>
+    function padZero(num) {
+        return num < 10 ? '0' + num : num;
+    }
+
+    function updateAutoFields() {
+        const now = new Date();
+        document.getElementById('id_timing').value = padZero(now.getHours()) + ':' + padZero(now.getMinutes()) + ':' + padZero(now.getSeconds());
+        document.getElementById('id_date').value = now.getFullYear() + '-' + padZero(now.getMonth() + 1) + '-' + padZero(now.getDate());
+    }
+
+    updateAutoFields();
+    setInterval(updateAutoFields, 1000);
+
+    // Form validation and submission handling
+    const form = document.getElementById('orderForm');
+    const submitButton = document.getElementById('submitButton');
+
+    function validateForm() {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+            }
+        });
+        return isValid;
+    }
+
+    function updateSubmitButton() {
+        submitButton.disabled = !validateForm();
+    }
+
+    // Add event listeners to all form fields
+    form.querySelectorAll('input, select').forEach(field => {
+        field.addEventListener('input', updateSubmitButton);
+        field.addEventListener('change', updateSubmitButton);
+    });
+
+    // Initial button state
+    updateSubmitButton();
+
+    // Form submission handling
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+            return;
+        }
+        submitButton.disabled = true;
+        submitButton.value = 'Submitting...';
+
+        // Optional: If you want to re-enable the button after a certain time
+        // in case the form submission fails or takes too long
+        setTimeout(function() {
+            submitButton.disabled = false;
+            submitButton.value = 'Submit';
+        }, 10000); // Re-enable after 10 seconds
+    });
+</script>
+
 </body>
 </html>

@@ -20,12 +20,16 @@
 
 
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class Order(models.Model):
     CANCEL_CHOICES = [
         ('non-cancel', 'Non-Cancel'),
         ('cancel', 'Cancel'),
     ]
+    #user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     id_name = models.CharField(max_length=50)
     timing = models.TimeField()
@@ -36,7 +40,21 @@ class Order(models.Model):
     refresh_link = models.CharField(max_length=200)  # New field
     cancel_status = models.CharField(max_length=20, choices=CANCEL_CHOICES, default='non-cancel')
 
+
     def __str__(self):
-        return f"Order {self.order_id}"
+            return f"Order {self.order_id} by {self.user.username}"
+
+
+
+class OrderLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    action = models.CharField(max_length=50)  # e.g., "created", "updated", "deleted"
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} {self.action} order {self.order.order_id} at {self.timestamp}"
+
+
 
 
