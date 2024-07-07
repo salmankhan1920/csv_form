@@ -150,11 +150,14 @@
         <button class="menu-button" onclick="toggleMenu()">Menu</button>
         <div id="dropdown-menu" class="dropdown-content">
             <a href="{% url 'logout' %}">Logout</a>
-            <a href="{% url 'user_logs' %}">Logs</a>
+            <a href="{% url 'all_user_logs' %}">All User Logs</a>
             <a href="{% url 'order_form' %}">Form</a>
             {% if user.is_superuser %}
             <a href="{% url 'display_csv' %}">View CSV</a>
         {% endif %}
+        {% if user.is_staff %}
+        <a href="{% url 'user_count' %}">Users Count</a>
+    {% endif %}
         </div>
     </div>
 

@@ -184,6 +184,18 @@
             }
         }
     </style>
+
+<style>
+    /* ... (keep existing styles) ... */
+    .error-message {
+        color: #D8000C;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: none;
+    }
+</style>
+
+
 </head>
 <body>
 
@@ -195,10 +207,16 @@
             {% if user.is_staff %}
             <a href="{% url 'all_user_logs' %}">All User Logs</a>
         {% endif %}
-        
+
             {% if user.is_superuser %}
             <a href="{% url 'display_csv' %}">View CSV</a>
         {% endif %}
+
+        {% if user.is_staff %}
+        <a href="{% url 'user_count' %}">Users Count</a>
+    {% endif %}
+
+    
         </div>
     </div>
 
@@ -247,7 +265,7 @@
             {% endif %}
         </div>
     </div>
-
+<!--     
     <script>
         function padZero(num) {
             return num < 10 ? '0' + num : num;
@@ -265,16 +283,25 @@
         // Form validation and submission handling
         const form = document.getElementById('orderForm');
         const submitButton = document.getElementById('submitButton');
+        const amountField = document.getElementById('id_amount');
+        const amountError = document.getElementById('amountError');
+
+        function validateAmount() {
+            const value = amountField.value.trim();
+            const isValid = /^\d{3,4}$/.test(value);
+            amountError.style.display = isValid ? 'none' : 'block';
+            return isValid;
+        }
 
         function validateForm() {
             let isValid = true;
-            const requiredFields = form.querySelectorAll('[required]');
+            const requiredFields = form.querySelectorAll('input[required], select[required]');
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     isValid = false;
                 }
             });
-            return isValid;
+            return isValid && validateAmount();
         }
 
         function updateSubmitButton() {
@@ -285,6 +312,12 @@
         form.querySelectorAll('input, select').forEach(field => {
             field.addEventListener('input', updateSubmitButton);
             field.addEventListener('change', updateSubmitButton);
+        });
+
+        // Special handler for amount field
+        amountField.addEventListener('input', function() {
+            validateAmount();
+            updateSubmitButton();
         });
 
         // Initial button state
@@ -306,7 +339,76 @@
                 submitButton.value = 'Submit';
             }, 10000); // Re-enable after 10 seconds
         });
+    </script> -->
+
+    <script>
+        // Form validation and submission handling
+const form = document.getElementById('orderForm');
+const submitButton = document.getElementById('submitButton');
+const amountField = document.getElementById('id_amount');
+const amountError = document.getElementById('amountError');
+
+function validateAmount() {
+    const value = amountField.value.trim();
+    const isValid = /^\d{3,4}$/.test(value);
+    amountError.style.display = isValid ? 'none' : 'block';
+    return isValid;
+}
+
+function validateForm() {
+    let isValid = true;
+    const requiredFields = form.querySelectorAll('input[required], select[required]');
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            isValid = false;
+        }
+    });
+    return isValid && validateAmount();
+}
+
+function updateSubmitButton() {
+    submitButton.disabled = !validateForm();
+}
+
+// Add event listeners to all form fields
+form.querySelectorAll('input, select').forEach(field => {
+    field.addEventListener('input', updateSubmitButton);
+    field.addEventListener('change', updateSubmitButton);
+});
+
+// Special handler for amount field
+amountField.addEventListener('input', function() {
+    validateAmount();
+    updateSubmitButton();
+});
+
+// Initial button state
+updateSubmitButton();
+
+// Form submission handling
+form.addEventListener('submit', function(e) {
+    if (!validateForm()) {
+        e.preventDefault();
+        return;
+    }
+    
+    // Disable the submit button and change its text
+    submitButton.disabled = true;
+    submitButton.value = 'Submitting...';
+
+    // Optional: If you want to re-enable the button after a certain time
+    // in case the form submission fails or takes too long
+    setTimeout(function() {
+        submitButton.disabled = false;
+        submitButton.value = 'Submit';
+    }, 10000); // Re-enable after 10 seconds
+});
+
+
+
     </script>
+
+
 
 <script>
     // ... (keep existing JavaScript) ...

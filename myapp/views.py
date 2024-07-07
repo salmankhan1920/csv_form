@@ -12,7 +12,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import user_passes_test
-
+from django.contrib.auth.models import User
 
 
 def is_superuser(user):
@@ -480,4 +480,18 @@ def all_user_logs(request):
     logs = OrderLog.objects.all().order_by('-timestamp')
     return render(request, 'all_user_logs.html', {'logs': logs})
 
-    
+
+
+def is_admin(user):
+    return user.is_superuser
+
+@user_passes_test(is_admin)
+def user_count(request):
+    users = User.objects.all().order_by('username')
+    total_users = users.count()
+    context = {
+        'total_users': total_users,
+        'users': users
+    }
+    return render(request, 'user_count.html', context)
+

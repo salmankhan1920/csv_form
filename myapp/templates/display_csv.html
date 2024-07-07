@@ -333,6 +333,9 @@
             {% if user.is_staff %}
             <a href="{% url 'all_user_logs' %}">All User Logs</a>
         {% endif %}
+        {% if user.is_staff %}
+        <a href="{% url 'user_count' %}">Users Count</a>
+    {% endif %}
         </div>
     </div>
 

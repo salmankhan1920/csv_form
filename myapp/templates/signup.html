@@ -76,7 +76,25 @@
             margin-top: 5px;
         }
     </style>
+    <style>
+        /* ... (keep existing styles) ... */
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .login-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+
 </head>
+
+
 <body>
     <div class="container">
         <h2>Sign Up</h2>
@@ -98,6 +116,14 @@
             {% endfor %}
             <button type="submit">Sign Up</button>
         </form>
+        <div class="login-link">
+            <p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+        </div>
     </div>
 </body>
+
+
+
+
+
 </html>

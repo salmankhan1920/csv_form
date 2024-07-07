@@ -177,6 +177,10 @@
             {% if user.is_superuser %}
             <a href="{% url 'display_csv' %}">View CSV</a>
         {% endif %}
+
+        {% if user.is_staff %}
+        <a href="{% url 'user_count' %}">Users Count</a>
+    {% endif %}
         </div>
     </div>
 
