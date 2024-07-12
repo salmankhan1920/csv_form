@@ -236,7 +236,7 @@
         </ul>
         {% endif %}
 
-        <form id="orderForm" method="post" autocomplete="on">
+        <!-- <form id="orderForm" method="post" autocomplete="on">
             {% csrf_token %}
             <input type="hidden" name="user_id" value="{{ request.user.id }}">
             {% for field in form %}
@@ -246,11 +246,74 @@
                     <div class="error">{{ field.errors }}</div>
                 {% endif %}
                 {% if field.name == 'amount' %}
-                    <div id="amountError" class="error-message">Please enter a valid number (3 or 4 digits).</div>
+                    <div id="amountError" class="error-message" style="display: none;">Please enter a valid number.</div>
+                {% endif %}
+                {% if field.name == 'order_id' %}
+                    <div id="orderIdError" class="error-message" style="display: none;">Please enter a valid URL.</div>
+                {% endif %}
+            {% endfor %}
+            <input type="submit" value="Submit" id="submitButton">
+        </form> -->
+
+        <!-- <form id="orderForm" method="post" autocomplete="on">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ request.user.id }}">
+            
+            <div class="form-group">
+                <label for="id_clone_option">Clone Option:</label>
+                {{ form.clone_option }}
+            </div>
+        
+            {% for field in form %}
+                {% if field.name != 'clone_option' %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                        {% endif %}
+                        {% if field.name == 'amount' %}
+                            <div id="amountError" class="error-message">Please enter a valid number.</div>
+                        {% endif %}
+                        {% if field.name == 'order_id' %}
+                            <div id="orderIdError" class="error-message">Please enter a valid URL.</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <input type="submit" value="Submit" id="submitButton">
+        </form> -->
+
+        <form id="orderForm" method="post" action="{% url 'order_form' %}?clone={{ request.GET.clone|default:'false' }}" autocomplete="on">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ request.user.id }}">
+            
+            <div class="form-group">
+                <label for="id_clone_option">Clone Option:</label>
+                {{ form.clone_option }}
+            </div>
+        
+            {% for field in form %}
+                {% if field.name != 'clone_option' %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                        {% endif %}
+                        {% if field.name == 'amount' %}
+                            <div id="amountError" class="error-message">Please enter a valid number.</div>
+                        {% endif %}
+                        {% if field.name == 'order_id' %}
+                            <div id="orderIdError" class="error-message">Please enter a valid URL.</div>
+                        {% endif %}
+                    </div>
                 {% endif %}
             {% endfor %}
             <input type="submit" value="Submit" id="submitButton">
         </form>
+        
+        
 
         <div class="recent-orders">
             <h3>Your Recent Orders</h3>
@@ -265,81 +328,7 @@
             {% endif %}
         </div>
     </div>
-<!--     
-    <script>
-        function padZero(num) {
-            return num < 10 ? '0' + num : num;
-        }
 
-        function updateAutoFields() {
-            const now = new Date();
-            document.getElementById('id_timing').value = padZero(now.getHours()) + ':' + padZero(now.getMinutes()) + ':' + padZero(now.getSeconds());
-            document.getElementById('id_date').value = now.getFullYear() + '-' + padZero(now.getMonth() + 1) + '-' + padZero(now.getDate());
-        }
-
-        updateAutoFields();
-        setInterval(updateAutoFields, 1000);
-
-        // Form validation and submission handling
-        const form = document.getElementById('orderForm');
-        const submitButton = document.getElementById('submitButton');
-        const amountField = document.getElementById('id_amount');
-        const amountError = document.getElementById('amountError');
-
-        function validateAmount() {
-            const value = amountField.value.trim();
-            const isValid = /^\d{3,4}$/.test(value);
-            amountError.style.display = isValid ? 'none' : 'block';
-            return isValid;
-        }
-
-        function validateForm() {
-            let isValid = true;
-            const requiredFields = form.querySelectorAll('input[required], select[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                }
-            });
-            return isValid && validateAmount();
-        }
-
-        function updateSubmitButton() {
-            submitButton.disabled = !validateForm();
-        }
-
-        // Add event listeners to all form fields
-        form.querySelectorAll('input, select').forEach(field => {
-            field.addEventListener('input', updateSubmitButton);
-            field.addEventListener('change', updateSubmitButton);
-        });
-
-        // Special handler for amount field
-        amountField.addEventListener('input', function() {
-            validateAmount();
-            updateSubmitButton();
-        });
-
-        // Initial button state
-        updateSubmitButton();
-
-        // Form submission handling
-        form.addEventListener('submit', function(e) {
-            if (!validateForm()) {
-                e.preventDefault();
-                return;
-            }
-            submitButton.disabled = true;
-            submitButton.value = 'Submitting...';
-
-            // Optional: If you want to re-enable the button after a certain time
-            // in case the form submission fails or takes too long
-            setTimeout(function() {
-                submitButton.disabled = false;
-                submitButton.value = 'Submit';
-            }, 10000); // Re-enable after 10 seconds
-        });
-    </script> -->
 
     <script>
         // Form validation and submission handling
@@ -347,13 +336,26 @@ const form = document.getElementById('orderForm');
 const submitButton = document.getElementById('submitButton');
 const amountField = document.getElementById('id_amount');
 const amountError = document.getElementById('amountError');
+const orderIdField = document.getElementById('id_order_id');
+const orderIdError = document.getElementById('orderIdError');
 
 function validateAmount() {
     const value = amountField.value.trim();
-    const isValid = /^\d{3,4}$/.test(value);
+    const isValid = /^\d+$/.test(value);
     amountError.style.display = isValid ? 'none' : 'block';
     return isValid;
 }
+
+
+
+function validateOrderId() {
+    const value = orderIdField.value.trim();
+    const isValid = /^https?:\/\/secure\.myntra\.com\/checkout\/confirm\?orderid=[\w-]+$/.test(value);
+    orderIdError.style.display = isValid ? 'none' : 'block';
+    return isValid;
+}
+
+
 
 function validateForm() {
     let isValid = true;
@@ -363,7 +365,7 @@ function validateForm() {
             isValid = false;
         }
     });
-    return isValid && validateAmount();
+    return isValid && validateAmount() && validateOrderId();
 }
 
 function updateSubmitButton() {
@@ -379,6 +381,12 @@ form.querySelectorAll('input, select').forEach(field => {
 // Special handler for amount field
 amountField.addEventListener('input', function() {
     validateAmount();
+    updateSubmitButton();
+});
+
+// Special handler for order ID field
+orderIdField.addEventListener('input', function() {
+    validateOrderId();
     updateSubmitButton();
 });
 
@@ -404,8 +412,6 @@ form.addEventListener('submit', function(e) {
     }, 10000); // Re-enable after 10 seconds
 });
 
-
-
     </script>
 
 
@@ -429,6 +435,130 @@ form.addEventListener('submit', function(e) {
             }
         }
     }
+</script>
+
+
+
+<script>
+    // ... (previous JavaScript code)
+
+    // // Add this new function to handle cloning
+    // function handleCloneOption() {
+    //     const cloneSelect = document.getElementById('id_clone_option');
+    //     cloneSelect.addEventListener('change', function() {
+    //         if (this.value === 'clone') {
+    //             // Fetch the last order data and fill the form
+    //             fetch('/get_last_order/')  // You need to create this endpoint
+    //                 .then(response => response.json())
+    //                 .then(data => {
+    //                     document.getElementById('id_id_name').value = data.id_name;
+    //                     document.getElementById('id_order_id').value = data.order_id;
+    //                    // document.getElementById('id_amount').value = data.amount;
+    //                   //  document.getElementById('id_address_code').value = data.address_code;
+    //                     document.getElementById('id_refresh_link').value = data.refresh_link;
+    //                     document.getElementById('id_cancel_status').value = data.cancel_status;
+                        
+    //                     // Trigger validation after filling the form
+    //                     validateForm();
+    //                     updateSubmitButton();
+    //                 });
+    //         } else {
+    //             // Clear the form if 'non-clone' is selected
+    //             document.getElementById('orderForm').reset();
+    //         }
+    //     });
+    // }
+
+//     function handleCloneOption() {
+//     const cloneSelect = document.getElementById('id_clone_option');
+//     const fieldsToClone = ['id_id_name', 'id_order_id', 'id_refresh_link', 'id_cancel_status'];
+    
+//     cloneSelect.addEventListener('change', function() {
+//         if (this.value === 'clone') {
+//             // Fetch the last order data and fill the form
+//             fetch('/get_last_order/')
+//                 .then(response => response.json())
+//                 .then(data => {
+//                     fieldsToClone.forEach(fieldId => {
+//                         const field = document.getElementById(fieldId);
+//                         field.value = data[fieldId.replace('id_', '')];
+//                         field.readOnly = true;
+//                     });
+                    
+//                     // Make cancel_status select readonly
+//                     document.getElementById('id_cancel_status').disabled = true;
+                    
+//                     // Trigger validation after filling the form
+//                     validateForm();
+//                     updateSubmitButton();
+//                 });
+//         } else {
+//             // Clear the form and make fields editable if 'non-clone' is selected
+//             document.getElementById('orderForm').reset();
+//             fieldsToClone.forEach(fieldId => {
+//                 const field = document.getElementById(fieldId);
+//                 field.readOnly = false;
+//             });
+//             document.getElementById('id_cancel_status').disabled = false;
+//         }
+//     });
+// }
+
+
+function handleCloneOption() {
+    const cloneSelect = document.getElementById('id_clone_option');
+    const fieldsToClone = ['id_id_name', 'id_order_id', 'id_refresh_link', 'id_cancel_status'];
+    
+    cloneSelect.addEventListener('change', function() {
+        localStorage.setItem('cloneState', this.value);
+        applyCloneState(this.value);
+    });
+
+    // Apply clone state on page load
+    const savedCloneState = localStorage.getItem('cloneState');
+    if (savedCloneState) {
+        cloneSelect.value = savedCloneState;
+        applyCloneState(savedCloneState);
+    }
+}
+
+function applyCloneState(state) {
+    const fieldsToClone = ['id_id_name', 'id_order_id', 'id_refresh_link', 'id_cancel_status'];
+    
+    if (state === 'clone') {
+        fetch('/get_last_order/')
+            .then(response => response.json())
+            .then(data => {
+                fieldsToClone.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    field.value = data[fieldId.replace('id_', '')];
+                    field.readOnly = true;
+                });
+                
+                document.getElementById('id_cancel_status').disabled = true;
+                
+                validateForm();
+                updateSubmitButton();
+            });
+    } else {
+        document.getElementById('orderForm').reset();
+        fieldsToClone.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            field.readOnly = false;
+        });
+        document.getElementById('id_cancel_status').disabled = false;
+    }
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', handleCloneOption);
+
+
+
+    // Call the new function to set up the event listener
+    handleCloneOption();
+
+    // ... (rest of the JavaScript code)
 </script>
 
 

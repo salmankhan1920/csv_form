@@ -13,6 +13,8 @@ urlpatterns = [
      path('logs/', views.user_logs, name='user_logs'),
       path('all-user-logs/', views.all_user_logs, name='all_user_logs'),
       path('user-count/', views.user_count, name='user_count'),
+      path('get_last_order/', views.get_last_order, name='get_last_order'),
+
 ]
 
     

@@ -13,6 +13,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 
 
 def is_superuser(user):
@@ -249,6 +250,40 @@ def is_superuser(user):
 #     return render(request, 'order_form.html', {'form': form, 'recent_orders': recent_orders})
 
 
+# @login_required
+# def order_form(request):
+#     if request.method == 'POST':
+#         form = OrderForm(request.POST, user=request.user)
+#         if form.is_valid():
+#             order = form.save(commit=False)
+#             now = timezone.localtime(timezone.now())
+#             order.timing = now.time()
+#             order.date = now.date()
+#             order.user = request.user
+#             order.save()
+            
+#             # Create log entry
+#             OrderLog.objects.create(user=request.user, order=order, action="created")
+            
+#             # Save to CSV
+#             save_to_csv(order, request.user)
+            
+#             messages.success(request, 'Order submitted successfully!')
+#             return redirect('order_form')
+#     else:
+#         form = OrderForm(user=request.user)
+    
+#     # Get recent orders for the logged-in user
+#     recent_orders = Order.objects.filter(user=request.user).order_by('-date', '-timing')[:4]
+    
+#     context = {
+#         'form': form,
+#         'recent_orders': recent_orders
+#     }
+    
+#     return render(request, 'order_form.html', context)
+
+
 @login_required
 def order_form(request):
     if request.method == 'POST':
@@ -270,7 +305,17 @@ def order_form(request):
             messages.success(request, 'Order submitted successfully!')
             return redirect('order_form')
     else:
-        form = OrderForm(user=request.user)
+        initial_data = {}
+        if request.GET.get('clone') == 'true':
+            last_order = Order.objects.filter(user=request.user).order_by('-id').first()
+            if last_order:
+                initial_data = {
+                    'id_name': last_order.id_name,
+                    'order_id': last_order.order_id,
+                    'refresh_link': last_order.refresh_link,
+                    'cancel_status': last_order.cancel_status,
+                }
+        form = OrderForm(user=request.user, initial=initial_data)
     
     # Get recent orders for the logged-in user
     recent_orders = Order.objects.filter(user=request.user).order_by('-date', '-timing')[:4]
@@ -282,6 +327,7 @@ def order_form(request):
     
     return render(request, 'order_form.html', context)
 
+    
 
 
 def save_to_csv(order, user):
@@ -495,3 +541,20 @@ def user_count(request):
     }
     return render(request, 'user_count.html', context)
 
+
+
+def get_last_order(request):
+    last_order = Order.objects.filter(user=request.user).order_by('-id').first()
+    if last_order:
+        return JsonResponse({
+            'id_name': last_order.id_name,
+            'order_id': last_order.order_id,
+            'amount': last_order.amount,
+            'address_code': last_order.address_code,
+            'refresh_link': last_order.refresh_link,
+            'cancel_status': last_order.cancel_status,
+        })
+    return JsonResponse({})
+
+
+    
