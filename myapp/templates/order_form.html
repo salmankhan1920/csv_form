@@ -130,9 +130,8 @@
                 font-size: 14px;
             }
         }
-    </style>
-    <style>
-        /* ... (keep existing styles) ... */
+
+           /* ... (keep existing styles) ... */
 
         /* Menu styles */
         .menu-container {
@@ -183,17 +182,20 @@
                 width: 100%;
             }
         }
-    </style>
 
-<style>
-    /* ... (keep existing styles) ... */
+        /* ... (keep existing styles) ... */
     .error-message {
         color: #D8000C;
         font-size: 0.9em;
         margin-top: 5px;
         display: none;
     }
-</style>
+    </style>
+  
+
+
+
+
 
 
 </head>
@@ -236,53 +238,7 @@
         </ul>
         {% endif %}
 
-        <!-- <form id="orderForm" method="post" autocomplete="on">
-            {% csrf_token %}
-            <input type="hidden" name="user_id" value="{{ request.user.id }}">
-            {% for field in form %}
-                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                {{ field }}
-                {% if field.errors %}
-                    <div class="error">{{ field.errors }}</div>
-                {% endif %}
-                {% if field.name == 'amount' %}
-                    <div id="amountError" class="error-message" style="display: none;">Please enter a valid number.</div>
-                {% endif %}
-                {% if field.name == 'order_id' %}
-                    <div id="orderIdError" class="error-message" style="display: none;">Please enter a valid URL.</div>
-                {% endif %}
-            {% endfor %}
-            <input type="submit" value="Submit" id="submitButton">
-        </form> -->
-
-        <!-- <form id="orderForm" method="post" autocomplete="on">
-            {% csrf_token %}
-            <input type="hidden" name="user_id" value="{{ request.user.id }}">
-            
-            <div class="form-group">
-                <label for="id_clone_option">Clone Option:</label>
-                {{ form.clone_option }}
-            </div>
-        
-            {% for field in form %}
-                {% if field.name != 'clone_option' %}
-                    <div class="form-group">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="error">{{ field.errors }}</div>
-                        {% endif %}
-                        {% if field.name == 'amount' %}
-                            <div id="amountError" class="error-message">Please enter a valid number.</div>
-                        {% endif %}
-                        {% if field.name == 'order_id' %}
-                            <div id="orderIdError" class="error-message">Please enter a valid URL.</div>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            {% endfor %}
-            <input type="submit" value="Submit" id="submitButton">
-        </form> -->
+       
 
         <form id="orderForm" method="post" action="{% url 'order_form' %}?clone={{ request.GET.clone|default:'false' }}" autocomplete="on">
             {% csrf_token %}
@@ -412,11 +368,7 @@ form.addEventListener('submit', function(e) {
     }, 10000); // Re-enable after 10 seconds
 });
 
-    </script>
 
-
-
-<script>
     // ... (keep existing JavaScript) ...
 
     function toggleMenu() {
@@ -435,74 +387,7 @@ form.addEventListener('submit', function(e) {
             }
         }
     }
-</script>
 
-
-
-<script>
-    // ... (previous JavaScript code)
-
-    // // Add this new function to handle cloning
-    // function handleCloneOption() {
-    //     const cloneSelect = document.getElementById('id_clone_option');
-    //     cloneSelect.addEventListener('change', function() {
-    //         if (this.value === 'clone') {
-    //             // Fetch the last order data and fill the form
-    //             fetch('/get_last_order/')  // You need to create this endpoint
-    //                 .then(response => response.json())
-    //                 .then(data => {
-    //                     document.getElementById('id_id_name').value = data.id_name;
-    //                     document.getElementById('id_order_id').value = data.order_id;
-    //                    // document.getElementById('id_amount').value = data.amount;
-    //                   //  document.getElementById('id_address_code').value = data.address_code;
-    //                     document.getElementById('id_refresh_link').value = data.refresh_link;
-    //                     document.getElementById('id_cancel_status').value = data.cancel_status;
-                        
-    //                     // Trigger validation after filling the form
-    //                     validateForm();
-    //                     updateSubmitButton();
-    //                 });
-    //         } else {
-    //             // Clear the form if 'non-clone' is selected
-    //             document.getElementById('orderForm').reset();
-    //         }
-    //     });
-    // }
-
-//     function handleCloneOption() {
-//     const cloneSelect = document.getElementById('id_clone_option');
-//     const fieldsToClone = ['id_id_name', 'id_order_id', 'id_refresh_link', 'id_cancel_status'];
-    
-//     cloneSelect.addEventListener('change', function() {
-//         if (this.value === 'clone') {
-//             // Fetch the last order data and fill the form
-//             fetch('/get_last_order/')
-//                 .then(response => response.json())
-//                 .then(data => {
-//                     fieldsToClone.forEach(fieldId => {
-//                         const field = document.getElementById(fieldId);
-//                         field.value = data[fieldId.replace('id_', '')];
-//                         field.readOnly = true;
-//                     });
-                    
-//                     // Make cancel_status select readonly
-//                     document.getElementById('id_cancel_status').disabled = true;
-                    
-//                     // Trigger validation after filling the form
-//                     validateForm();
-//                     updateSubmitButton();
-//                 });
-//         } else {
-//             // Clear the form and make fields editable if 'non-clone' is selected
-//             document.getElementById('orderForm').reset();
-//             fieldsToClone.forEach(fieldId => {
-//                 const field = document.getElementById(fieldId);
-//                 field.readOnly = false;
-//             });
-//             document.getElementById('id_cancel_status').disabled = false;
-//         }
-//     });
-// }
 
 
 function handleCloneOption() {
